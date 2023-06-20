@@ -1,5 +1,9 @@
-import User from '../models/user';
+/* eslint-disable consistent-return */
+/* eslint-disable max-len */
+/* eslint-disable no-console */
 import { Request, Response } from 'express';
+import { HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR } from '../constants/status-codes';
+import User from '../models/user';
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -7,22 +11,22 @@ export const getUsers = async (req: Request, res: Response) => {
     res.send(users);
   } catch (err) {
     console.log(err);
-    res.status(500).send('Ошибка сервера');
+    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
   }
 };
 
 export const getUserById = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   try {
     const user = await User.findById(userId);
     if (!user) {
-      res.status(404).send('Пользователь не найден');
+      res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
       return;
     }
     res.send(user);
   } catch (err) {
     console.log(err);
-    res.status(500).send('Ошибка сервера');
+    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
   }
 };
 
@@ -30,39 +34,39 @@ export const createUser = async (req: Request, res: Response) => {
   const { name, about, avatar } = req.body;
   try {
     const user = await User.create({ name, about, avatar });
-    res.status(200).send(user);
+    res.status(HTTP_STATUS_OK).send(user);
   } catch (err) {
     console.log(err);
-    res.status(500).send('Ошибка сервера');
+    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
   }
 };
 
 export const updateUserInfo = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const information = req.body;
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, information, { new: true });
     if (!updatedUser) {
-      return res.status(404).send('Пользователь не найден');
+      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
     }
-    res.status(200).send(updatedUser);
+    res.status(HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {
     console.log(err);
-    res.status(500).send('Ошибка сервера');
+    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
   }
 };
 
 export const updateAvatar = async (req: Request, res: Response) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const { avatar } = req.body;
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, { new: true });
     if (!updatedUser) {
-      return res.status(404).send('Пользователь не найден');
+      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
     }
-    res.status(200).send(updatedUser);
+    res.status(HTTP_STATUS_OK).send(updatedUser);
   } catch (err) {
     console.log(err);
-    res.status(500).send('Ошибка сервера');
+    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
   }
 };
