@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import userRouter from "./routes/users";
 import { UserRequest } from "types/types";
-import cardsRouter from "routes/cards";
+import cardsRouter from "./routes/cards";
 
 const { PORT = 3000 } = process.env;
 const app = express();
