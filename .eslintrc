@@ -46,6 +46,7 @@
         ]
       }
     ],
-    "consistent-return": "off"
+    "consistent-return": "off",
+    "object-curly-newline": "off"
   }
 }

@@ -1,6 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
+import bcryptjs from 'bcryptjs';
 import {
   HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST,
 } from '../constants/status-codes';
@@ -36,9 +38,10 @@ export const getUserById = async (req: Request, res: Response) => {
 };
 
 export const createUser = async (req: Request, res: Response) => {
-  const { name, about, avatar } = req.body;
+  const { name, about, avatar, email, password } = req.body;
   try {
-    const user = await User.create({ name, about, avatar });
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    const user = await User.create({ name, about, avatar, email, password: hashedPassword });
     res.status(HTTP_STATUS_OK).send(user);
   } catch (err) {
     console.log(err);
