@@ -34,6 +34,7 @@ const userSchema = new Schema<IUser>({
     type: String,
     required: true,
     trim: true,
+    select: false,
   },
 });
 

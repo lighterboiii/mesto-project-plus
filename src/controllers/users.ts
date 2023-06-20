@@ -105,7 +105,7 @@ export const updateAvatar = async (req: ICustomRequest, res: Response) => {
 export const login = async (req: ICustomRequest, res: Response) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Неверный логин или пароль' });
     }
