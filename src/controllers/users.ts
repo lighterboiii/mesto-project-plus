@@ -48,8 +48,8 @@ export const createUser = async (req: Request, res: Response) => {
   const { name, about, avatar, email, password } = req.body;
   try {
     const hashedPassword = await bcryptjs.hash(password, 10);
-    const user = await User.create({ name, about, avatar, email, password: hashedPassword });
-    res.status(HTTP_STATUS_OK).send(user);
+    const newUser = await User.create({ name, about, avatar, email, password: hashedPassword });
+    res.status(HTTP_STATUS_OK).send(newUser);
   } catch (err: any) {
     if (err.name === 'ValidationError') {
       res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
@@ -115,7 +115,11 @@ export const login = async (req: ICustomRequest, res: Response) => {
     }
     const token = jwt.sign({ _id: user._id }, JWT_SECRET_KEY, { expiresIn: '7d' });
     res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-    res.status(HTTP_STATUS_OK).send(user);
+    res.status(HTTP_STATUS_OK).send({
+      token,
+      name: user.name,
+      email: user.email,
+    });
   } catch (err: any) {
     console.error(err);
     res.status(HTTP_STATUS_SERVER_ERROR).json({ message: 'Ошибка сервера' });
