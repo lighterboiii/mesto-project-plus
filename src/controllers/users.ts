@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { UserRequest } from '../types/types';
+import { ICustomRequest } from '../types/types';
 import {
   HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST,
 } from '../constants/status-codes';
@@ -56,7 +56,7 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-export const updateUserInfo = async (req: UserRequest, res: Response) => {
+export const updateUserInfo = async (req: ICustomRequest, res: Response) => {
   const userId = req.user?._id;
   const information = req.body;
   try {
@@ -77,7 +77,7 @@ export const updateUserInfo = async (req: UserRequest, res: Response) => {
   }
 };
 
-export const updateAvatar = async (req: UserRequest, res: Response) => {
+export const updateAvatar = async (req: ICustomRequest, res: Response) => {
   const userId = req.user?._id;
   const { avatar } = req.body;
   try {
@@ -98,7 +98,7 @@ export const updateAvatar = async (req: UserRequest, res: Response) => {
   }
 };
 
-export const login = async (req: UserRequest, res: Response) => {
+export const login = async (req: ICustomRequest, res: Response) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });

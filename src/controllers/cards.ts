@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
-import { UserRequest } from '../types/types';
+import { ICustomRequest } from '../types/types';
 import {
   HTTP_STATUS_OK, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_BAD_REQUEST,
 } from '../constants/status-codes';
@@ -17,7 +17,7 @@ export const getCards = async (req: Request, res: Response) => {
   }
 };
 
-export const createCard = async (req: UserRequest, res: Response) => {
+export const createCard = async (req: ICustomRequest, res: Response) => {
   const { name, link } = req.body;
   const owner = req.user?._id;
   try {
@@ -51,7 +51,7 @@ export const deleteCard = async (req: Request, res: Response) => {
   }
 };
 
-export const likeCard = async (req: UserRequest, res: Response) => {
+export const likeCard = async (req: ICustomRequest, res: Response) => {
   const { cardId } = req.params;
   const owner = req.user?._id;
   try {
@@ -72,7 +72,7 @@ export const likeCard = async (req: UserRequest, res: Response) => {
   }
 };
 
-export const dislikeCard = async (req: UserRequest, res: Response) => {
+export const dislikeCard = async (req: ICustomRequest, res: Response) => {
   const { cardId } = req.params;
   const owner = req.user?._id;
   try {
