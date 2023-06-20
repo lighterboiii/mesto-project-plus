@@ -2,7 +2,9 @@
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
-import { HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR } from '../constants/status-codes';
+import {
+  HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST,
+} from '../constants/status-codes';
 import User from '../models/user';
 
 export const getUsers = async (req: Request, res: Response) => {
@@ -24,9 +26,13 @@ export const getUserById = async (req: Request, res: Response) => {
       return;
     }
     res.send(user);
-  } catch (err) {
-    console.log(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+  } catch (err: any) {
+    if (err.name === 'CastError') {
+      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректные данные' });
+    } else {
+      console.log(err);
+      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    }
   }
 };
 
@@ -45,14 +51,18 @@ export const updateUserInfo = async (req: Request, res: Response) => {
   const { userId } = req.params;
   const information = req.body;
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, information, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, information, { new: true, runValidators: true });
     if (!updatedUser) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
     }
     res.status(HTTP_STATUS_OK).send(updatedUser);
-  } catch (err) {
-    console.log(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+  } catch (err: any) {
+    if (err.name === 'ValidationError') {
+      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+    } else {
+      console.log(err);
+      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    }
   }
 };
 
@@ -60,13 +70,17 @@ export const updateAvatar = async (req: Request, res: Response) => {
   const { userId } = req.params;
   const { avatar } = req.body;
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true });
     if (!updatedUser) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
     }
     res.status(HTTP_STATUS_OK).send(updatedUser);
-  } catch (err) {
-    console.log(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+  } catch (err: any) {
+    if (err.name === 'ValidationError') {
+      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+    } else {
+      console.log(err);
+      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    }
   }
 };
