@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
+import { UserRequest } from '../types/types';
 import {
   HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST,
 } from '../constants/status-codes';
@@ -43,14 +44,18 @@ export const createUser = async (req: Request, res: Response) => {
     const hashedPassword = await bcryptjs.hash(password, 10);
     const user = await User.create({ name, about, avatar, email, password: hashedPassword });
     res.status(HTTP_STATUS_OK).send(user);
-  } catch (err) {
-    console.log(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+  } catch (err: any) {
+    if (err.name === 'ValidationError') {
+      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+    } else {
+      console.log(err);
+      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    }
   }
 };
 
-export const updateUserInfo = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+export const updateUserInfo = async (req: UserRequest, res: Response) => {
+  const userId = req.user?._id;
   const information = req.body;
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, information, { new: true, runValidators: true });
@@ -68,8 +73,8 @@ export const updateUserInfo = async (req: Request, res: Response) => {
   }
 };
 
-export const updateAvatar = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+export const updateAvatar = async (req: UserRequest, res: Response) => {
+  const userId = req.user?._id;
   const { avatar } = req.body;
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true });
