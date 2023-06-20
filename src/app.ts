@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+// import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { UserRequest } from './types/types';
 import userRouter from './routes/users';
@@ -7,7 +8,7 @@ import { HTTP_STATUS_NOT_FOUND } from './constants/status-codes';
 
 const { PORT = 3000 } = process.env;
 const app = express();
-
+// dotenv.config();
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.use(express.json());

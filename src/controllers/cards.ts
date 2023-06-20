@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
@@ -56,7 +55,9 @@ export const likeCard = async (req: UserRequest, res: Response) => {
   const { cardId } = req.params;
   const owner = req.user?._id;
   try {
-    const updatedCard = await Card.findByIdAndUpdate(cardId, { $addToSet: { likes: owner } }, { new: true });
+    const updatedCard = await Card.findByIdAndUpdate(cardId, {
+      $addToSet: { likes: owner },
+    }, { new: true });
     if (!updatedCard) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена' });
     }
@@ -75,7 +76,9 @@ export const dislikeCard = async (req: UserRequest, res: Response) => {
   const { cardId } = req.params;
   const owner = req.user?._id;
   try {
-    const updatedCard = await Card.findByIdAndUpdate(cardId, { $pull: { likes: owner as unknown as ObjectId } }, { new: true });
+    const updatedCard = await Card.findByIdAndUpdate(cardId, {
+      $pull: { likes: owner as unknown as ObjectId },
+    }, { new: true });
     if (!updatedCard) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена' });
     }

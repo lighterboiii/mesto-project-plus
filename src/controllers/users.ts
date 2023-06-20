@@ -1,13 +1,15 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable max-len */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { UserRequest } from '../types/types';
 import {
   HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST,
 } from '../constants/status-codes';
 import User from '../models/user';
+import JWT_SECRET_KEY from '../constants/jwt-secret-key';
+
+// const { JWT_SECRET_KEY, NODE_ENV } = process.env;
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -58,7 +60,9 @@ export const updateUserInfo = async (req: UserRequest, res: Response) => {
   const userId = req.user?._id;
   const information = req.body;
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, information, { new: true, runValidators: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, information, {
+      new: true, runValidators: true,
+    });
     if (!updatedUser) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
     }
@@ -77,7 +81,9 @@ export const updateAvatar = async (req: UserRequest, res: Response) => {
   const userId = req.user?._id;
   const { avatar } = req.body;
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, {
+      new: true, runValidators: true,
+    });
     if (!updatedUser) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
     }
@@ -89,5 +95,25 @@ export const updateAvatar = async (req: UserRequest, res: Response) => {
       console.log(err);
       res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
     }
+  }
+};
+
+export const login = async (req: UserRequest, res: Response) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Неверный логин или пароль' });
+    }
+    const matched = bcryptjs.compare(password, user.password);
+    if (!matched) {
+      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Неверный логин или пароль' });
+    }
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET_KEY, { expiresIn: '7d' });
+    res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.status(HTTP_STATUS_OK).send(user);
+  } catch (err: any) {
+    console.error(err);
+    res.status(HTTP_STATUS_SERVER_ERROR).json({ message: 'Ошибка сервера' });
   }
 };

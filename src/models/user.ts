@@ -1,14 +1,6 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { model, Schema } from 'mongoose';
 import validator from 'validator';
-
-export interface IUser {
-  name: string;
-  about: string;
-  avatar: string;
-  email: string;
-  password: string;
-}
+import { IUser } from '../types/types';
 
 const userSchema = new Schema<IUser>({
   name: {
