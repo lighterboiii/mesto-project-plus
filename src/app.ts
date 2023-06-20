@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import userRouter from "./routes/users";
 import { UserRequest } from "types/types";
+import cardsRouter from "routes/cards";
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -12,6 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/users', userRouter);
+app.use('/cards', cardsRouter);
 
 app.use((req: UserRequest, res: Response, next) => {
   req.user = {

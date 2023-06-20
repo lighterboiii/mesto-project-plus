@@ -36,3 +36,33 @@ export const createUser = async (req: Request, res: Response) => {
     res.status(500).send('Ошибка сервера');
   }
 };
+
+export const updateUserInfo = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const information = req.body;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, information, { new: true });
+    if (!updatedUser) {
+      return res.status(404).send('Пользователь не найден');
+    }
+    res.status(200).send(updatedUser);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Ошибка сервера');
+  }
+};
+
+export const updateAvatar = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const { avatar } = req.body;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, { avatar }, { new: true });
+    if (!updatedUser) {
+      return res.status(404).send('Пользователь не найден');
+    }
+    res.status(200).send(updatedUser);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send('Ошибка сервера');
+  }
+};
