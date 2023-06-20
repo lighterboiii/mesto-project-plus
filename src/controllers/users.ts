@@ -4,7 +4,11 @@ import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ICustomRequest } from '../types/types';
 import {
-  HTTP_STATUS_OK, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_OK,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_SERVER_ERROR,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_FORBIDDEN,
 } from '../constants/status-codes';
 import User from '../models/user';
 import JWT_SECRET_KEY from '../constants/jwt-secret-key';
@@ -115,5 +119,29 @@ export const login = async (req: ICustomRequest, res: Response) => {
   } catch (err: any) {
     console.error(err);
     res.status(HTTP_STATUS_SERVER_ERROR).json({ message: 'Ошибка сервера' });
+  }
+};
+
+export const getUserData = async (req: ICustomRequest, res: Response) => {
+  const userId = req.user?._id;
+  if (!userId) {
+    return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректный запрос' });
+  }
+  try {
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Пользователь не найден' });
+    }
+    if (currentUser._id.toString() !== req.user?._id.toString()) {
+      return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Доступ запрещён' });
+    }
+    res.status(HTTP_STATUS_OK).send(currentUser);
+  } catch (err: any) {
+    if (err.name === 'CastError') {
+      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректный запрос' });
+    } else {
+      console.log(err);
+      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    }
   }
 };
