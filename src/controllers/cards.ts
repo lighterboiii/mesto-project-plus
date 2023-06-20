@@ -3,7 +3,11 @@ import { Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
 import { ICustomRequest } from '../types/types';
 import {
-  HTTP_STATUS_OK, HTTP_STATUS_SERVER_ERROR, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_OK,
+  HTTP_STATUS_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_FORBIDDEN,
 } from '../constants/status-codes';
 import Card from '../models/cards';
 
@@ -33,9 +37,14 @@ export const createCard = async (req: ICustomRequest, res: Response) => {
   }
 };
 
-export const deleteCard = async (req: Request, res: Response) => {
+export const deleteCard = async (req: ICustomRequest, res: Response) => {
   const { cardId } = req.params;
+  const { _id: userId } = req.user!;
   try {
+    const card = await Card.findById(cardId);
+    if (card!.owner.toString() !== userId) {
+      return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Вы можете удалить только свою карточку' });
+    }
     const deletedCard = await Card.findByIdAndRemove(cardId);
     if (!deletedCard) {
       return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена' });
