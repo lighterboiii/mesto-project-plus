@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';

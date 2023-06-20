@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 /* eslint-disable max-len */
 /* eslint-disable no-console */
 import { Request, Response } from 'express';
@@ -82,8 +81,8 @@ export const dislikeCard = async (req: UserRequest, res: Response) => {
     }
     res.status(HTTP_STATUS_OK).send(updatedCard);
   } catch (err: any) {
-    if (err.name === 'CastError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректные данные' });
+    if (err.name === 'ValidationError') {
+      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
     } else {
       console.log(err);
       res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
