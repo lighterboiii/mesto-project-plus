@@ -27,3 +27,8 @@ export interface IUser {
   email: string;
   password: string;
 }
+
+export type TError = {
+  statusCode: number;
+  message: string;
+};

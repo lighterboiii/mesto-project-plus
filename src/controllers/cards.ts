@@ -1,27 +1,22 @@
-/* eslint-disable no-console */
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
 import { ICustomRequest } from '../types/types';
-import {
-  HTTP_STATUS_OK,
-  HTTP_STATUS_SERVER_ERROR,
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_FORBIDDEN,
-} from '../constants/status-codes';
+import { HTTP_STATUS_OK } from '../constants/status-codes';
 import Card from '../models/cards';
+import BadRequestError from '../errors/bad-request';
+import ForbiddenError from '../errors/forbidden';
+import NotFoundError from '../errors/not-found';
 
-export const getCards = async (req: Request, res: Response) => {
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cards = await Card.find();
     res.send(cards);
   } catch (err) {
-    console.log(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    next(err);
   }
 };
 
-export const createCard = async (req: ICustomRequest, res: Response) => {
+export const createCard = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
   const owner = req.user?._id;
   try {
@@ -29,38 +24,36 @@ export const createCard = async (req: ICustomRequest, res: Response) => {
     res.status(HTTP_STATUS_OK).send(card);
   } catch (err: any) {
     if (err.name === 'ValidationError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+      throw new BadRequestError('Некорректные данные');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const deleteCard = async (req: ICustomRequest, res: Response) => {
+export const deleteCard = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
   const { _id: userId } = req.user!;
   try {
     const card = await Card.findById(cardId);
     if (card!.owner.toString() !== userId) {
-      return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Вы можете удалить только свою карточку' });
+      throw new ForbiddenError('Вы можете удалить только свою карточку');
     }
     const deletedCard = await Card.findByIdAndRemove(cardId);
     if (!deletedCard) {
-      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена' });
+      throw new NotFoundError('Карточка не найдена');
     }
     res.status(HTTP_STATUS_OK).send(deletedCard);
   } catch (err: any) {
     if (err.name === 'CastError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректные данные' });
+      throw new BadRequestError('Некорректные данные');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const likeCard = async (req: ICustomRequest, res: Response) => {
+export const likeCard = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
   const owner = req.user?._id;
   try {
@@ -68,20 +61,19 @@ export const likeCard = async (req: ICustomRequest, res: Response) => {
       $addToSet: { likes: owner },
     }, { new: true });
     if (!updatedCard) {
-      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена' });
+      throw new NotFoundError('Карточка не найдена');
     }
     res.status(HTTP_STATUS_OK).send(updatedCard);
   } catch (err: any) {
     if (err.name === 'CastError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректные данные' });
+      throw new BadRequestError('Некорректные данные');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const dislikeCard = async (req: ICustomRequest, res: Response) => {
+export const dislikeCard = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
   const owner = req.user?._id;
   try {
@@ -89,15 +81,14 @@ export const dislikeCard = async (req: ICustomRequest, res: Response) => {
       $pull: { likes: owner as unknown as ObjectId },
     }, { new: true });
     if (!updatedCard) {
-      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Карточка не найдена' });
+      throw new NotFoundError('Карточка не найдена');
     }
     res.status(HTTP_STATUS_OK).send(updatedCard);
   } catch (err: any) {
     if (err.name === 'ValidationError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+      throw new BadRequestError('Некорректные данные');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };

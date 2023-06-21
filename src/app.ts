@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 // import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRouter from './routes/users';
@@ -25,6 +25,12 @@ app.use('/cards', cardsRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Страница не найдена' });
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла ошибка' : message });
 });
 
 app.listen(PORT, () => {
