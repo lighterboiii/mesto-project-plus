@@ -1,66 +1,62 @@
-/* eslint-disable no-console */
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ICustomRequest } from '../types/types';
-import {
-  HTTP_STATUS_OK,
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_SERVER_ERROR,
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_FORBIDDEN,
-} from '../constants/status-codes';
+import HTTP_STATUS_OK from '../constants/status-codes';
 import User from '../models/user';
 import JWT_SECRET_KEY from '../constants/jwt-secret-key';
+import NotFoundError from '../errors/not-found';
+import BadRequestError from '../errors/bad-request';
+import ForbiddenError from '../errors/forbidden';
+import ConflictError from '../errors/conflict';
+import UnauthorizedError from '../errors/unauthorized';
 
-// const { JWT_SECRET_KEY, NODE_ENV } = process.env;
-
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await User.find();
     res.send(users);
   } catch (err) {
-    console.log(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+    next(err);
   }
 };
 
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId);
     if (!user) {
-      res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
-      return;
+      throw new NotFoundError('Пользователь не найден');
     }
     res.send(user);
   } catch (err: any) {
     if (err.name === 'CastError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректные данные' });
+      throw new BadRequestError('Некорректные данные пользователя');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar, email, password } = req.body;
   try {
     const hashedPassword = await bcryptjs.hash(password, 10);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new ConflictError('Пользователь с таким email уже существует');
+    }
     const newUser = await User.create({ name, about, avatar, email, password: hashedPassword });
     res.status(HTTP_STATUS_OK).send(newUser);
   } catch (err: any) {
     if (err.name === 'ValidationError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+      throw new BadRequestError('Некорректные данные пользователя');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const updateUserInfo = async (req: ICustomRequest, res: Response) => {
+export const updateUserInfo = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const userId = req.user?._id;
   const information = req.body;
   try {
@@ -68,20 +64,19 @@ export const updateUserInfo = async (req: ICustomRequest, res: Response) => {
       new: true, runValidators: true,
     });
     if (!updatedUser) {
-      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
+      throw new NotFoundError('Пользователь не найден');
     }
     res.status(HTTP_STATUS_OK).send(updatedUser);
   } catch (err: any) {
     if (err.name === 'ValidationError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+      throw new BadRequestError('Некорректные данные пользователя');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const updateAvatar = async (req: ICustomRequest, res: Response) => {
+export const updateAvatar = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const userId = req.user?._id;
   const { avatar } = req.body;
   try {
@@ -89,29 +84,28 @@ export const updateAvatar = async (req: ICustomRequest, res: Response) => {
       new: true, runValidators: true,
     });
     if (!updatedUser) {
-      return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Пользователь не найден' });
+      throw new NotFoundError('Пользователь не найден');
     }
     res.status(HTTP_STATUS_OK).send(updatedUser);
   } catch (err: any) {
     if (err.name === 'ValidationError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Ошибка валидации' });
+      throw new BadRequestError('Некорректные данные пользователя');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };
 
-export const login = async (req: ICustomRequest, res: Response) => {
+export const login = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Неверный логин или пароль' });
+      throw new UnauthorizedError('Неверный логин или пароль');
     }
     const matched = bcryptjs.compare(password, user.password);
     if (!matched) {
-      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Неверный логин или пароль' });
+      throw new UnauthorizedError('Неверный логин или пароль');
     }
     const token = jwt.sign({ _id: user._id }, JWT_SECRET_KEY, { expiresIn: '7d' });
     res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
@@ -121,31 +115,29 @@ export const login = async (req: ICustomRequest, res: Response) => {
       email: user.email,
     });
   } catch (err: any) {
-    console.error(err);
-    res.status(HTTP_STATUS_SERVER_ERROR).json({ message: 'Ошибка сервера' });
+    next(err);
   }
 };
 
-export const getUserData = async (req: ICustomRequest, res: Response) => {
+export const getUserData = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const userId = req.user?._id;
   if (!userId) {
-    return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректный запрос' });
+    throw new BadRequestError('Некорректные данные пользователя');
   }
   try {
     const currentUser = await User.findById(userId);
     if (!currentUser) {
-      return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Пользователь не найден' });
+      throw new NotFoundError('Пользователь не найден');
     }
     if (currentUser._id.toString() !== req.user?._id.toString()) {
-      return res.status(HTTP_STATUS_FORBIDDEN).send({ message: 'Доступ запрещён' });
+      throw new ForbiddenError('Доступ запрещен');
     }
     res.status(HTTP_STATUS_OK).send(currentUser);
   } catch (err: any) {
     if (err.name === 'CastError') {
-      res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Некорректный запрос' });
+      throw new BadRequestError('Некорректные данные пользователя');
     } else {
-      console.log(err);
-      res.status(HTTP_STATUS_SERVER_ERROR).send({ message: 'Ошибка сервера' });
+      next(err);
     }
   }
 };

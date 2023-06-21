@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
 import { ICustomRequest } from '../types/types';
-import { HTTP_STATUS_OK } from '../constants/status-codes';
+import HTTP_STATUS_OK from '../constants/status-codes';
 import Card from '../models/cards';
 import BadRequestError from '../errors/bad-request';
 import ForbiddenError from '../errors/forbidden';
