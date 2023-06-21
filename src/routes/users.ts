@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate, Joi } from 'celebrate';
 import {
   getUsers, getUserById, updateAvatar, updateUserInfo, getUserData,
 } from '../controllers/users';
@@ -6,9 +7,22 @@ import {
 const userRouter = Router();
 
 userRouter.get('/', getUsers);
-userRouter.get('/:userId', getUserById);
 userRouter.get('/me', getUserData);
-userRouter.patch('/me', updateUserInfo);
-userRouter.patch('/me/avatar', updateAvatar);
+userRouter.get('/:userId', celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().required().length(24).hex(),
+  }),
+}), getUserById);
+userRouter.patch('/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(200),
+  }),
+}), updateUserInfo);
+userRouter.patch('/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required().hex(),
+  }),
+}), updateAvatar);
 
 export default userRouter;

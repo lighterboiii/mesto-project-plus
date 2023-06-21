@@ -58,9 +58,9 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
 export const updateUserInfo = async (req: ICustomRequest, res: Response, next: NextFunction) => {
   const userId = req.user?._id;
-  const information = req.body;
+  const { name, about } = req.body;
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, information, {
+    const updatedUser = await User.findByIdAndUpdate(userId, { name, about }, {
       new: true, runValidators: true,
     });
     if (!updatedUser) {
