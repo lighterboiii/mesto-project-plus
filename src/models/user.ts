@@ -1,7 +1,7 @@
 import { model, Schema } from 'mongoose';
 import validator from 'validator';
 import { IUser } from '../types/types';
-import avatarRegExp from '../constants/regexp';
+import urlRegExp from '../constants/regexp';
 
 const userSchema = new Schema<IUser>({
   name: {
@@ -21,7 +21,7 @@ const userSchema = new Schema<IUser>({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(value: any) {
-        return avatarRegExp.test(value);
+        return urlRegExp.test(value);
       },
       message: 'Некорректный формат ссылки',
     },
