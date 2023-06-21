@@ -48,6 +48,7 @@
     ],
     "consistent-return": "off",
     "object-curly-newline": "off",
-    "import/no-extraneous-dependencies": "off"
+    "import/no-extraneous-dependencies": "off",
+    "no-useless-escape": "off"
   }
 }
