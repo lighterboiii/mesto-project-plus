@@ -1,5 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { errors } from 'celebrate';
 import userRouter from './routes/users';
 import cardsRouter from './routes/cards';
@@ -14,10 +16,18 @@ const app = express();
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+});
+app.use(helmet());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(requestLogger);
+
+app.use(limiter);
 
 app.post('/signin', userValidation.loginValidation, login);
 app.post('/signup', userValidation.createUserValidation, createUser);
