@@ -51,6 +51,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       about: newUser.about,
       avatar: newUser.avatar,
       email: newUser.email,
+      _id: newUser._id,
     });
   } catch (err: any) {
     if (err.name === 'ValidationError') {
