@@ -46,7 +46,13 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       throw new ConflictError('Пользователь с таким email уже существует');
     }
     const newUser = await User.create({ name, about, avatar, email, password: hashedPassword });
-    res.status(HTTP_STATUS_OK).send(newUser);
+    res.status(HTTP_STATUS_OK).send({
+      name: newUser.name,
+      about: newUser.about,
+      avatar: newUser.avatar,
+      email: newUser.email,
+      _id: newUser._id,
+    });
   } catch (err: any) {
     if (err.name === 'ValidationError') {
       throw new BadRequestError('Некорректные данные пользователя');
@@ -108,7 +114,7 @@ export const login = async (req: ICustomRequest, res: Response, next: NextFuncti
       throw new UnauthorizedError('Неверный логин или пароль');
     }
     const token = jwt.sign({ _id: user._id }, JWT_SECRET_KEY, { expiresIn: '7d' });
-    res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('jwt', token, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: true });
     res.status(HTTP_STATUS_OK).send({
       token,
       name: user.name,
