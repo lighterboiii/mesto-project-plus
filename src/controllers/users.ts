@@ -46,7 +46,12 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       throw new ConflictError('Пользователь с таким email уже существует');
     }
     const newUser = await User.create({ name, about, avatar, email, password: hashedPassword });
-    res.status(HTTP_STATUS_OK).send(newUser);
+    res.status(HTTP_STATUS_OK).send({
+      name: newUser.name,
+      about: newUser.about,
+      avatar: newUser.avatar,
+      email: newUser.email,
+    });
   } catch (err: any) {
     if (err.name === 'ValidationError') {
       throw new BadRequestError('Некорректные данные пользователя');
