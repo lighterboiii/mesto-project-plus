@@ -1,9 +1,10 @@
 import { Joi, celebrate } from 'celebrate';
+import customMethod from './custom-method';
 
 const createCardValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required(),
+    link: Joi.string().required().custom(customMethod.isUrlMethod),
   }),
 });
 
